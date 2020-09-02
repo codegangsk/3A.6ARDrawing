@@ -12,6 +12,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     }
     
     var objectMode: ObjectPlacementMode = .freeform
+    var selectedNode: SCNNode?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,6 +56,7 @@ extension ViewController: OptionsViewControllerDelegate {
     
     func objectSelected(node: SCNNode) {
         dismiss(animated: true, completion: nil)
+        selectedNode = node
     }
     
     func togglePlaneVisualization() {
