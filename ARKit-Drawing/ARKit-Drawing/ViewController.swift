@@ -85,6 +85,29 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.scene.rootNode.addChildNode(cloneNode)
         placedNodes.append(cloneNode)
     }
+    
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        if let imageAnchor = anchor as? ARImageAnchor {
+            nodeAdded(node, for: imageAnchor)
+        } else if let planeAnchor = anchor as? ARPlaneAnchor {
+            nodeAdded(node, for: planeAnchor)
+        }
+    }
+    
+    func nodeAdded(_ node: SCNNode, for anchor: ARPlaneAnchor) {
+        }
+    
+    func nodeAdded(_ node: SCNNode, for anchor: ARImageAnchor) {
+        if let selectedNode = selectedNode {
+            addNode(selectedNode, toImageUsingParentNode: node)
+        }
+    }
+    
+    func addNode(_ node: SCNNode, toImageUsingParentNode parentNode: SCNNode) {
+        let cloneNode = node.clone()
+        parentNode.addChildNode(cloneNode)
+        placedNodes.append(cloneNode)
+    }
 }
 
 extension ViewController: OptionsViewControllerDelegate {
