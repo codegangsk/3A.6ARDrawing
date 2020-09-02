@@ -30,6 +30,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     }
     }
     
+    var lastObjectPlacedPoint: CGPoint?
+    let touchDistanceTreshhold: CGFloat = 40.0
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -68,7 +71,6 @@ extension ViewController: OptionsViewControllerDelegate {
         dismiss(animated: true, completion: nil)
     }
 }
-
 
 extension ViewController {
     @IBAction func changeObjectMode(_ sender: UISegmentedControl) {
@@ -199,6 +201,7 @@ extension ViewController {
             node.position = SCNVector3(x: t.columns.3.x, y: t.columns.3.y, z: t.columns.3.z)
             
             addNodeToSceneRoot(node)
+            lastObjectPlacedPoint = point
         }
     }
     
@@ -207,11 +210,21 @@ extension ViewController {
         
         guard objectMode == .plane,
             let node = selectedNode,
-            let touch = touches.first else {
+            let touch = touches.first,
+            let lastTouchPoint = lastObjectPlacedPoint else {
                 return
         }
         
         let newTouchPoint = touch.location(in: sceneView)
+        let distance = sqrt(pow((newTouchPoint.x-lastTouchPoint.x), 2.0) + pow((newTouchPoint.y - lastTouchPoint.y), 2.0))
+        
+        if distance > touchDistanceTreshhold {
         addNode(node, toPlaneUsingPoint: newTouchPoint)
     }
+}
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        lastObjectPlacedPoint = nil
+}
 }
