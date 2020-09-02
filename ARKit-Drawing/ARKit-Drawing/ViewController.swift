@@ -19,6 +19,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
     var selectedNode: SCNNode?
     
+    var placedNodes = [SCNNode]()
+    var planeNodes = [SCNNode]()
+    
+    var showPlaneOverlay = false {
+        didSet {
+        for node in planeNodes {
+            node.isHidden = !showPlaneOverlay
+        }
+    }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -31,19 +42,35 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         reloadConfiguration()
     }
     
-    func reloadConfiguration() {
-        configuration.planeDetection = .horizontal
-        configuration.detectionImages = (objectMode == .image) ?
-            ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) : nil
-        
-        sceneView.session.run(configuration)
-    }
-    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         sceneView.session.pause()
     }
+}
 
+extension ViewController: OptionsViewControllerDelegate {
+    
+    func objectSelected(node: SCNNode) {
+        dismiss(animated: true, completion: nil)
+        selectedNode = node
+    }
+    
+    func togglePlaneVisualization() {
+        dismiss(animated: true, completion: nil)
+        showPlaneOverlay = !showPlaneOverlay
+    }
+    
+    func undoLastObject() {
+        
+    }
+    
+    func resetScene() {
+        dismiss(animated: true, completion: nil)
+    }
+}
+
+
+extension ViewController {
     @IBAction func changeObjectMode(_ sender: UISegmentedControl) {
         switch sender.selectedSegmentIndex {
         case 0:
@@ -78,7 +105,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             break
         }
     }
-    
+}
+
+extension ViewController {
     func addNodeInFront(_ node: SCNNode) {
         guard let currentFrame = sceneView.session.currentFrame else {return}
         
@@ -90,9 +119,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.scene.rootNode.addChildNode(cloneNode)
     }
     
-    var placedNodes = [SCNNode]()
-    var planeNodes = [SCNNode]()
-    
     func addNodeToSceneRoot(_ node: SCNNode) {
         let cloneNode = node.clone()
         sceneView.scene.rootNode.addChildNode(cloneNode)
@@ -100,27 +126,15 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     }
 }
 
-extension ViewController: OptionsViewControllerDelegate {
-    
-    func objectSelected(node: SCNNode) {
-        dismiss(animated: true, completion: nil)
-        selectedNode = node
-    }
-    
-    func togglePlaneVisualization() {
-        dismiss(animated: true, completion: nil)
-    }
-    
-    func undoLastObject() {
-        
-    }
-    
-    func resetScene() {
-        dismiss(animated: true, completion: nil)
-    }
-}
 
 extension ViewController {
+    func reloadConfiguration() {
+        configuration.planeDetection = .horizontal
+        configuration.detectionImages = (objectMode == .image) ?
+            ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) : nil
+        
+        sceneView.session.run(configuration)
+    }
     
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         if let imageAnchor = anchor as? ARImageAnchor {
@@ -145,6 +159,7 @@ extension ViewController {
     
     func nodeAdded(_ node: SCNNode, for anchor: ARPlaneAnchor) {
         let floor = createFloor(planeAnchor: anchor)
+        floor.isHidden = !showPlaneOverlay
         
         node.addChildNode(floor)
         planeNodes.append(floor)
