@@ -94,12 +94,14 @@ extension ViewController {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         
-        guard let node = selectedNode, let _ = touches.first else {return}
+        guard let node = selectedNode, let touch = touches.first else {return}
         
         switch objectMode {
         case .freeform:
             addNodeInFront(node)
         case .plane:
+            let touchPoint = touch.location(in: sceneView)
+            addNode(node, toPlaneUsingPoint: touchPoint)
             break
         case .image:
             break
@@ -187,5 +189,16 @@ extension ViewController {
         node.opacity = 0.25
         
         return node
+    }
+    
+    func addNode(_ node: SCNNode, toPlaneUsingPoint point: CGPoint) {
+        let results = sceneView.hitTest(point, types: [.existingPlaneUsingExtent])
+        
+        if let match = results.first {
+            let t = match.worldTransform
+            node.position = SCNVector3(x: t.columns.3.x, y: t.columns.3.y, z: t.columns.3.z)
+            
+            addNodeToSceneRoot(node)
+        }
     }
 }
