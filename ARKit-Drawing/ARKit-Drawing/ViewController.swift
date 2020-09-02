@@ -201,4 +201,17 @@ extension ViewController {
             addNodeToSceneRoot(node)
         }
     }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        
+        guard objectMode == .plane,
+            let node = selectedNode,
+            let touch = touches.first else {
+                return
+        }
+        
+        let newTouchPoint = touch.location(in: sceneView)
+        addNode(node, toPlaneUsingPoint: newTouchPoint)
+    }
 }
