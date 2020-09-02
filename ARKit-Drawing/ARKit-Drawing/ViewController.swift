@@ -64,8 +64,11 @@ extension ViewController: OptionsViewControllerDelegate {
     }
     
     func undoLastObject() {
-        
-    }
+             if let lastNode = placedNodes.last {
+                 lastNode.removeFromParentNode()
+                 placedNodes.removeLast()
+             }
+         }
     
     func resetScene() {
         dismiss(animated: true, completion: nil)
