@@ -70,9 +70,14 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         guard let currentFrame = sceneView.session.currentFrame else {return}
         
         var translation = matrix_identity_float4x4
-        translation.columns.3.z = 0.2
+        translation.columns.3.z = -0.2
         node.simdTransform = matrix_multiply(currentFrame.camera.transform, translation)
         
+        let cloneNode = node.clone()
+        sceneView.scene.rootNode.addChildNode(cloneNode)
+    }
+    
+    func addNodeToSceneRoot(_ node: SCNNode) {
         let cloneNode = node.clone()
         sceneView.scene.rootNode.addChildNode(cloneNode)
     }
@@ -96,8 +101,4 @@ extension ViewController: OptionsViewControllerDelegate {
     func resetScene() {
         dismiss(animated: true, completion: nil)
     }
-}
-
-extension ViewController: UIViewController {
-    
 }
