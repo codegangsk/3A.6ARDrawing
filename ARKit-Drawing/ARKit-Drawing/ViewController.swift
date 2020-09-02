@@ -11,7 +11,12 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         case freeform, plane, image
     }
     
-    var objectMode: ObjectPlacementMode = .freeform
+    var objectMode: ObjectPlacementMode = .freeform  {
+        didSet {
+            reloadConfiguration()
+        }
+    }
+        
     var selectedNode: SCNNode?
     
     override func viewDidLoad() {
@@ -23,6 +28,13 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        reloadConfiguration()
+    }
+    
+    func reloadConfiguration() {
+        configuration.detectionImages = (objectMode == .image) ?
+            ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) : nil
+        
         sceneView.session.run(configuration)
     }
     
@@ -54,7 +66,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         
-        guard let node = selectedNode, let touch = touches.first else {return}
+        guard let node = selectedNode, let _ = touches.first else {return}
         
         switch objectMode {
         case .freeform:
