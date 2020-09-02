@@ -32,6 +32,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     }
     
     func reloadConfiguration() {
+        configuration.planeDetection = .horizontal
         configuration.detectionImages = (objectMode == .image) ?
             ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) : nil
         
@@ -97,29 +98,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.scene.rootNode.addChildNode(cloneNode)
         placedNodes.append(cloneNode)
     }
-    
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        if let imageAnchor = anchor as? ARImageAnchor {
-            nodeAdded(node, for: imageAnchor)
-        } else if let planeAnchor = anchor as? ARPlaneAnchor {
-            nodeAdded(node, for: planeAnchor)
-        }
-    }
-    
-    func nodeAdded(_ node: SCNNode, for anchor: ARPlaneAnchor) {
-        }
-    
-    func nodeAdded(_ node: SCNNode, for anchor: ARImageAnchor) {
-        if let selectedNode = selectedNode {
-            addNode(selectedNode, toImageUsingParentNode: node)
-        }
-    }
-    
-    func addNode(_ node: SCNNode, toImageUsingParentNode parentNode: SCNNode) {
-        let cloneNode = node.clone()
-        parentNode.addChildNode(cloneNode)
-        placedNodes.append(cloneNode)
-    }
 }
 
 extension ViewController: OptionsViewControllerDelegate {
@@ -139,5 +117,60 @@ extension ViewController: OptionsViewControllerDelegate {
     
     func resetScene() {
         dismiss(animated: true, completion: nil)
+    }
+}
+
+extension ViewController {
+    
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        if let imageAnchor = anchor as? ARImageAnchor {
+            nodeAdded(node, for: imageAnchor)
+        } else if let planeAnchor = anchor as? ARPlaneAnchor {
+            nodeAdded(node, for: planeAnchor)
+        }
+    }
+    
+    func nodeAdded(_ node: SCNNode, for anchor: ARImageAnchor) {
+        if let selectedNode = selectedNode {
+            addNode(selectedNode, toImageUsingParentNode: node)
+        }
+    }
+    
+    func addNode(_ node: SCNNode, toImageUsingParentNode parentNode: SCNNode) {
+        let cloneNode = node.clone()
+        parentNode.addChildNode(cloneNode)
+        placedNodes.append(cloneNode)
+    }
+
+    
+    func nodeAdded(_ node: SCNNode, for anchor: ARPlaneAnchor) {
+        let floor = createFloor(planeAnchor: anchor)
+        
+        node.addChildNode(floor)
+        planeNodes.append(floor)
+    }
+    
+    func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
+        guard let planeAnchor = anchor as? ARPlaneAnchor,
+            let planeNode = node.childNodes.first,
+            let plane = planeNode.geometry as? SCNPlane else {
+                return
+        }
+        
+        planeNode.position = SCNVector3(planeAnchor.center.x, 0, planeAnchor.center.z)
+        plane.width = CGFloat(planeAnchor.extent.x)
+        plane.height = CGFloat(planeAnchor.extent.z)
+    }
+    
+    func createFloor(planeAnchor: ARPlaneAnchor) -> SCNNode {
+        let node = SCNNode()
+        
+        let geometry = SCNPlane(width: CGFloat(planeAnchor.extent.x), height: CGFloat(planeAnchor.extent.z))
+        node.geometry = geometry
+        
+        node.eulerAngles.x = -Float.pi / 2
+        node.opacity = 0.25
+        
+        return node
     }
 }
