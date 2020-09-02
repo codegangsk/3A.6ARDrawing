@@ -13,7 +13,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     var objectMode: ObjectPlacementMode = .freeform  {
         didSet {
-            reloadConfiguration()
+            reloadConfiguration(removeAnchors: false)
         }
     }
         
@@ -32,7 +32,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     var lastObjectPlacedPoint: CGPoint?
     let touchDistanceTreshhold: CGFloat = 40.0
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -72,6 +72,7 @@ extension ViewController: OptionsViewControllerDelegate {
     
     func resetScene() {
         dismiss(animated: true, completion: nil)
+        reloadConfiguration()
     }
 }
 
@@ -135,12 +136,28 @@ extension ViewController {
 
 
 extension ViewController {
-    func reloadConfiguration() {
-        configuration.planeDetection = .horizontal
+    func reloadConfiguration(removeAnchors: Bool = true) {
+        configuration.planeDetection = [.horizontal, .vertical]
         configuration.detectionImages = (objectMode == .image) ?
             ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) : nil
+    
+        let options: ARSession.RunOptions
         
-        sceneView.session.run(configuration)
+        if removeAnchors {
+            options = [.removeExistingAnchors]
+            for node in planeNodes {
+                node.removeFromParentNode()
+            }
+            planeNodes.removeAll()
+            for node in placedNodes {
+                node.removeFromParentNode()
+            }
+            placedNodes.removeAll()
+        } else {
+            options = []
+        }
+        
+        sceneView.session.run(configuration, options: options)
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
