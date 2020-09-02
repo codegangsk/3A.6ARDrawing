@@ -77,9 +77,13 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.scene.rootNode.addChildNode(cloneNode)
     }
     
+    var placedNodes = [SCNNode]()
+    var planeNodes = [SCNNode]()
+    
     func addNodeToSceneRoot(_ node: SCNNode) {
         let cloneNode = node.clone()
         sceneView.scene.rootNode.addChildNode(cloneNode)
+        placedNodes.append(cloneNode)
     }
 }
 
